@@ -21,6 +21,9 @@ xcuserdata/
 *.xcscmblueprint
 
 *.vs/
+*.xcodeproj/
+*.plist
+*.xcconfig
 */obj/
 *.sln
 *.vcxproj*
