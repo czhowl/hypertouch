@@ -1,14 +1,5 @@
-//
-//  Tesseract.hpp
-//  bulletTest
-//
-//  Created by Zihao Chen on 11/27/18.
-//
+#pragma once
 
-#ifndef Tesseract_hpp
-#define Tesseract_hpp
-
-#define SIZE 1
 #define VERTICES 16
 #define SCALE 1400
 
@@ -35,6 +26,3 @@ public:
     
     float speed = 0;
 };
-
-
-#endif /* Tesseract_hpp */

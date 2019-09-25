@@ -2,8 +2,6 @@
 
 #include "ofMain.h"
 #include "ofxBullet.h"
-#include "Tesseract.hpp"
-#include "Matrix.hpp"
 #include "Cube.hpp"
 //#include "ofxPostProcessing.h"
 #include "ofxDeferredShading.h"

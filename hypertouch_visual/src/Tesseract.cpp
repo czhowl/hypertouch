@@ -8,22 +8,22 @@
 #include "Tesseract.hpp"
 
 void Tesseract::init(){
-    vertices[0] = ofVec4f(-SIZE, -SIZE, -SIZE, SIZE);
-    vertices[1] = ofVec4f(SIZE, -SIZE, -SIZE, SIZE);
-    vertices[2] = ofVec4f(SIZE, SIZE, -SIZE, SIZE);
-    vertices[3] = ofVec4f(-SIZE, SIZE, -SIZE, SIZE);
-    vertices[4] = ofVec4f(-SIZE, -SIZE, SIZE, SIZE);
-    vertices[5] = ofVec4f(SIZE, -SIZE, SIZE, SIZE);
-    vertices[6] = ofVec4f(SIZE, SIZE, SIZE, SIZE);
-    vertices[7] = ofVec4f(-SIZE, SIZE, SIZE, SIZE);
-    vertices[8] = ofVec4f(-SIZE, -SIZE, -SIZE, -SIZE);
-    vertices[9] = ofVec4f(SIZE, -SIZE, -SIZE, -SIZE);
-    vertices[10] = ofVec4f(SIZE, SIZE, -SIZE, -SIZE);
-    vertices[11] = ofVec4f(-SIZE, SIZE, -SIZE, -SIZE);
-    vertices[12] = ofVec4f(-SIZE, -SIZE, SIZE, -SIZE);
-    vertices[13] = ofVec4f(SIZE, -SIZE, SIZE, -SIZE);
-    vertices[14] = ofVec4f(SIZE, SIZE, SIZE, -SIZE);
-    vertices[15] = ofVec4f(-SIZE, SIZE, SIZE, -SIZE);
+    vertices[0] = ofVec4f(-1, -1, -1, 1);
+    vertices[1] = ofVec4f(1, -1, -1, 1);
+    vertices[2] = ofVec4f(1, 1, -1, 1);
+    vertices[3] = ofVec4f(-1, 1, -1, 1);
+    vertices[4] = ofVec4f(-1, -1, 1, 1);
+    vertices[5] = ofVec4f(1, -1, 1, 1);
+    vertices[6] = ofVec4f(1, 1, 1, 1);
+    vertices[7] = ofVec4f(-1, 1, 1, 1);
+    vertices[8] = ofVec4f(-1, -1, -1, -1);
+    vertices[9] = ofVec4f(1, -1, -1, -1);
+    vertices[10] = ofVec4f(1, 1, -1, -1);
+    vertices[11] = ofVec4f(-1, 1, -1, -1);
+    vertices[12] = ofVec4f(-1, -1, 1, -1);
+    vertices[13] = ofVec4f(1, -1, 1, -1);
+    vertices[14] = ofVec4f(1, 1, 1, -1);
+    vertices[15] = ofVec4f(-1, 1, 1, -1);
     updateProjection(0,0,0,0,0,0);
 };
 
@@ -41,9 +41,6 @@ void Tesseract::updateProjection(int isXW, int isYW, int isZW, int isXY, int isX
     else if(isXZ == -1) angleXZ -= speed;
     if(isYZ == 1) angleYZ += speed;
     else if(isYZ == -1) angleYZ -= speed;
-    
-    
-    
     
     float rXW[4][4] = {
         {cos(angleXW), 0, 0, sin(angleXW)},

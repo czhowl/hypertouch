@@ -1,17 +1,8 @@
-//
-//  Cube.hpp
-//  4dbox_mesh
-//
-//  Created by Zihao Chen on 11/28/18.
-//
-
-#ifndef Cube_hpp
-#define Cube_hpp
+#pragma once
 
 #include "ofMain.h"
 #include "ofxBullet.h"
 #include "Tesseract.hpp"
-#include "Matrix.hpp"
 
 class Cube{
     
@@ -38,5 +29,3 @@ public:
     ofBufferObject buffer;
     vector<ofMatrix4x4> matrices;
 };
-
-#endif /* Cube_hpp */

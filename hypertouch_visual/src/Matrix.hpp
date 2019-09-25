@@ -1,12 +1,4 @@
-//
-//  Matrix.hpp
-//  4d
-//
-//  Created by Zihao Chen on 11/17/18.
-//
-
-#ifndef Matrix_hpp
-#define Matrix_hpp
+#pragma once
 
 #include <stdio.h>
 #include "ofMain.h"
@@ -24,5 +16,3 @@ ofVec3f matmul(float** a, int cA, int rA, ofVec4f b);
 ofVec4f matmul(float** a, int cA, int rA, ofVec4f b, bool fourth);
 
 float** matmul(float** a, float** b, int cA, int rA, int cB, int rB);
-
-#endif /* Matrix_hpp */
