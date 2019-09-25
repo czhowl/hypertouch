@@ -2,19 +2,15 @@
 
 //--------------------------------------------------------------
 void ofApp::setup(){
-//    ofHideCursor();
+    ofHideCursor();
     isShaderDirty = true;
     isScreenDirty = false;
     ofSetFrameRate(60);
     ofBackground(0);
     ofSetWindowTitle("4d mesh");
-//    ofEnableSmoothing();
-//    ofEnableAntiAliasing();
-    ofSetVerticalSync(true);
+//    ofSetVerticalSync(true);
     ofEnableDepthTest();
     camE.setDistance(1000);
-//    ofSetBackgroundAuto(false);
-//    ofSetSphereResolution(3);
     
     // Create Tesseract
     
@@ -40,7 +36,7 @@ void ofApp::setup(){
     
     // Create cube
     
-    int ballzNum = 800;
+    int ballzNum = 600;
     cube = new Cube[8];
     cube[0].init(&this->camE, walls[0], ballzNum, ofColor(224,118,102));
     cube[1].init(&this->camE, walls[1], ballzNum, ofColor(255,0,100));
@@ -209,16 +205,14 @@ void ofApp::update(){
 
 //--------------------------------------------------------------
 void ofApp::draw(){
-//    ofDrawCircle(500, 500, 0, 100);
-    std::stringstream strm;
-    strm << "fps: " << ofGetFrameRate();
-    ofSetWindowTitle(strm.str());
-    std::stringstream sttm;
-    sttm << "time: " << ofGetElapsedTimef();
-    ofSetColor(255);
-    ofDrawBitmapString(strm.str(), 100, 100);
-    ofDrawBitmapString(sttm.str(), 100, 120);
-//
+//    std::stringstream strm;
+//    strm << "fps: " << ofGetFrameRate();
+//    ofSetWindowTitle(strm.str());
+//    std::stringstream sttm;
+//    sttm << "time: " << ofGetElapsedTimef();
+//    ofSetColor(255);
+//    ofDrawBitmapString(strm.str(), 100, 100);
+//    ofDrawBitmapString(sttm.str(), 100, 120);
     
     
     this->shader.begin();

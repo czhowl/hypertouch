@@ -35,7 +35,7 @@ void Cube::init(ofCamera *cam, ofMesh& box, int _ballNum, ofColor _color){
     bounds_shape_ptr = new ofxBulletCustomShape();
     world.setup();
     world.setCamera(cam);
-    world.setGravity(glm::vec3(0.f, 10.f, 0.f));
+    world.setGravity(glm::vec3(0.f, 5.f, 0.f));
 //    world.setGravity(glm::vec3(0.f, -50.f, 0.f));
     
     vector< glm::vec3 >& verticies = box.getVertices();
