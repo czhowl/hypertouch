@@ -3,11 +3,22 @@
 uniform float angle;
 uniform vec2 resolution;
 uniform sampler2DRect maskTex;
+//uniform sampler2DRect bgTex;
 uniform float bingoPoint;
 
 uniform int isXW;
 uniform int isZW;
 uniform int isYW;
+uniform int isXY;
+uniform int isXZ;
+uniform int isYZ;
+
+uniform int prevXW;
+uniform int prevZW;
+uniform int prevYW;
+uniform int prevXY;
+uniform int prevXZ;
+uniform int prevYZ;
 
 uniform int prevW;
 uniform float time;
@@ -22,6 +33,8 @@ out vec4 outputColor;
 //
 vec4 permute(vec4 x){return mod(((x*34.0)+1.0)*x, 289.0);}
 vec4 taylorInvSqrt(vec4 r){return 1.79284291400159 - 0.85373472095314 * r;}
+
+#define PI 3.1415926535897932384626433832795
 
 float snoise(vec3 v){
     const vec2  C = vec2(1.0/6.0, 1.0/3.0) ;
@@ -92,75 +105,83 @@ float snoise(vec3 v){
                                  dot(p2,x2), dot(p3,x3) ) );
 }
 
+const mat3 rgb2yiq = mat3( 0.299, 0.595716, 0.211456, 0.587, -0.274453, -0.522591, 0.114, -0.321263, 0.311135 );
+const mat3 yiq2rgb = mat3( 1.0, 1.0, 1.0, 0.9563, -0.2721, -1.1070, 0.6210, -0.6474, 1.7046 );
+
 void main() {
     
     vec2 p = (gl_FragCoord.xy * 2.0 - resolution) / min(resolution.x, resolution.y);
     
     vec4 src = texture(maskTex, vec2(gl_FragCoord.x,resolution.y-gl_FragCoord.y)).rgba;
-    float r, g, b;
-    float rp, gp, bp;
-    float a;
-//    float r = 0.03 / abs(0.9 - length(p)) * abs(sin(p.x + p.y + time));
-//    float g = 0.03 / abs(0.9 - length(p)) * abs(sin(p.x + p.y + time * 0.5) * cos(p.x + p.y + time * 0.5));
-//    float b = 0.03 / abs(0.9 - length(p)) * abs(cos(p.x + p.y + time));
-//
-    float noise = snoise(vec3(p.x * 0.2, p.x * 0.2, time * 0.3)) * 1.0 + 1.0 - p.y * 1.0;
-    if(abs(isYW) == 1){
-        r = 0.02 / abs(0.9 - length(p)) * abs(cos(p.x + p.y + angle))*0.3 - noise;
-        g = 0.03 / abs(0.9 - length(p)) * (abs(cos(p.x + p.y + angle + 1) * sin(p.x + p.y + angle)) * 1.5)- noise;
-        b = 0.08 / abs(0.9 - length(p)) * (abs(sin(p.x + p.y + angle)) * 0.7 + 0.2) + noise;
-    }else if(abs(isZW) == 1){
-        r = 0.05 / abs(0.9 - length(p)) * abs(cos(p.x + p.y + angle+0.5));
-        g = 0.01 / abs(0.9 - length(p)) * (cos(p.x + p.y + angle) * sin(p.x + p.y + angle) + 0.5) - noise;
-        b = 0.06 / abs(0.9 - length(p)) * abs(sin(p.x + p.y + angle));
-    }else if(abs(isXW) == 1){
-        r = 0.05 / abs(0.9 - length(p)) * abs(sin(p.x + p.y + angle + 0.5) * cos(p.x + p.y + angle + 0.5));
-        g = 0.05 / abs(0.9 - length(p)) * abs(sin(p.x + p.y + angle + 1));
-        b = 0.05 / abs(0.9 - length(p)) * abs(cos(p.x + p.y + angle)) - noise * 1.5;
-    }else{
-        r = 0.05 / abs(0.9 - length(p));
-        g = 0.05 / abs(0.9 - length(p));
-        b = 0.05 / abs(0.9 - length(p));
-    }
+//    vec4 bg = texture(bgTex, vec2(gl_FragCoord.x,resolution.y-gl_FragCoord.y) * ).rgba;
+    float r = 0, g = 0, b = 0;
+    float rp = 0, gp = 0, bp = 0;
+    float a = 0;
+    r = 0.02 / abs(0.9 - length(p));
+    g = r;
+    b = r;
+    rp = r;
+    gp = g;
+    bp = b;
+    float noise = snoise(vec3(time * 0.1, p.x * 0.1, time * 0.2)) * 1.0 + 1.0 - p.y * 1.0;
+    float noiser = (snoise(vec3(p.x * 0.2, p.x * 0.2, time * 0.2)) * 1.0 + 1.0 - p.y * 1.0) * 0.5;
+    float noiseb = (snoise(vec3(p.x * 0.1, time * 0.3, p.x * 0.2)) * 1.0 + 1.0 - p.y * 1.0) * 0.5;
+    float noiseg = (snoise(vec3(time * 0.3, p.x * 0.1, p.x * 0.2)) * 1.0 + 1.0 - p.y * 1.0) * 0.5;
+    float isX = step(0.5, abs(isXZ) + abs(isXY) + abs(isXW));
+    float isY = step(0.5, abs(isYW) + abs(isXY) + abs(isYZ));
+    float isZ = step(0.5, abs(isXZ) + abs(isZW) + abs(isYZ));
+    float isW = step(0.5, abs(isXW) + abs(isYW) + abs(isZW));
     
-    if(prevW == 2){
-        rp = 0.02 / abs(0.9 - length(p)) * abs(cos(p.x + p.y + angle))*0.3 - noise;
-        gp = 0.03 / abs(0.9 - length(p)) * (abs(cos(p.x + p.y + angle + 1) * sin(p.x + p.y + angle)) * 1.5)- noise;
-        bp = 0.08 / abs(0.9 - length(p)) * (abs(sin(p.x + p.y + angle)) * 0.7 + 0.2) + noise;
-    }else if(prevW == 3){
-        rp = 0.05 / abs(0.9 - length(p)) * abs(cos(p.x + p.y + angle+0.5));
-        gp = 0.01 / abs(0.9 - length(p)) * (cos(p.x + p.y + angle) * sin(p.x + p.y + angle) + 0.5) - noise;
-        bp = 0.06 / abs(0.9 - length(p)) * abs(sin(p.x + p.y + angle));
-    }else if(prevW == 1){
-        rp = 0.05 / abs(0.9 - length(p)) * abs(sin(p.x + p.y + angle + 0.5) * cos(p.x + p.y + angle + 0.5));
-        gp = 0.05 / abs(0.9 - length(p)) * abs(sin(p.x + p.y + angle + 1));
-        bp = 0.05 / abs(0.9 - length(p)) * abs(cos(p.x + p.y + angle)) - noise * 1.5;
-    }else{
-        rp = 0.05 / abs(0.9 - length(p));
-        gp = 0.05 / abs(0.9 - length(p));
-        bp = 0.05 / abs(0.9 - length(p));
-    }
+    float prevX = step(0.5, abs(prevXZ) + abs(prevXY) + abs(prevXW));
+    float prevY = step(0.5, abs(prevYW) + abs(prevXY) + abs(prevYZ));
+    float prevZ = step(0.5, abs(prevXZ) + abs(prevZW) + abs(prevYZ));
+    float prevW = step(0.5, abs(prevXW) + abs(prevYW) + abs(prevZW));
+    
+    r += r * isX * abs(cos(p.x + p.y + angle + 1.0)) * 2.0;
+    b += b * isY * (cos(p.x + p.y + angle) * sin(p.x + p.y + angle) + 0.7) * 2.0;
+    g += g * isZ * (abs(sin(p.x + p.y + angle)) * 0.7 + 0.5) * 2.0;
+    
+    r += r * isW * abs(cos(p.x - p.y - angle + 2.0));
+    g += g * isW * abs(cos(p.x - p.y - angle + 2.0));
+    
+    g -= isX * noiseg;
+    b -= isX * noiseb;
+    r -= isY * noiser;
+    g -= isY * noiseb;
+    r -= isZ * noiser;
+    b -= isZ * noiseg;
+    
+    b -= isW * noiseb;
+    
+    rp += rp * prevX * abs(cos(p.x + p.y + angle + 1.0)) * 2.0;
+    bp += bp * prevY * (cos(p.x + p.y + angle) * sin(p.x + p.y + angle) + 0.7) * 2.0;
+    gp += gp * prevZ * (abs(sin(p.x + p.y + angle)) * 0.7 + 0.5) * 2.0;
+    
+    rp += rp * prevW * abs(cos(p.x - p.y - angle + 2.0));
+    gp += gp * prevW * abs(cos(p.x - p.y - angle + 2.0));
+    
+    gp -= prevX * noiseg;
+    bp -= prevX * noiseb;
+    rp -= prevY * noiser;
+    gp -= prevY * noiseb;
+    rp -= prevZ * noiser;
+    bp -= prevZ * noiseg;
+    
+    bp -= prevW * noiseb;
     
     a = 0.05 / abs(0.9 - length(p));
-    
-    float changeBlend = 1;
-    if(time - changePoint < 3.1415926535897932384626433832795/2){
-        changeBlend = sin((time - changePoint));
-    }
+    a = 1.0;
+
+    float changeBlend = smoothstep(changePoint, changePoint + 0.6, time);
     
     vec4 prevColor = vec4(rp, gp, bp, a) + noise;
     vec4 color = vec4(r, g, b, a) + noise;
     color = mix(prevColor,color,changeBlend);
     
-    float bingoBlend = 0.9;
-    if(time - bingoPoint < 0.6){
-        float blendAngle = (time - bingoPoint)/0.6 + 1;
-        bingoBlend = cos(sin(blendAngle)*tan(blendAngle*3.1415926535897932384626433832795)*3.1415926535897932384626433832795/8) * 2 - 1.1;
-    }
-        color = mix(color,src,bingoBlend);
-//    }
+    float blendAngle = smoothstep(bingoPoint, bingoPoint + 0.6, time) + 1.0;
+    float bingoBlend = cos(sin(blendAngle)*tan(blendAngle*PI)*PI/8) * 2 - 1.1;
     
-//    color = mix(vec4(noise),color,color.r - noise);
-//    color = vec4(noise + color.x, color.y, color.z, color.w);
+    color = mix(color,src,bingoBlend);
+    
     outputColor = vec4(color);
 }

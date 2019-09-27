@@ -57,6 +57,7 @@ class ofApp : public ofBaseApp{
     float angle = 0;
     
     int isXW,isYW,isZW,isXY,isXZ,isYZ;
+    int prevXW,prevYW,prevZW,prevXY,prevXZ,prevYZ;
     int prevW, currW;
     float changePoint = 0, bingoPoint = 0;
     
@@ -73,4 +74,9 @@ class ofApp : public ofBaseApp{
     
     bool isShaderDirty;
     bool isScreenDirty;
+    bool isFps;
+    
+    ofTexture mBgTex;
+    int prevAxis[4] = {0};
+    int axis[4] = {0};
 };

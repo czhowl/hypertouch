@@ -5,6 +5,7 @@ void ofApp::setup(){
     ofHideCursor();
     isShaderDirty = true;
     isScreenDirty = false;
+    isFps = false;
     ofSetFrameRate(60);
     ofBackground(0);
     ofSetWindowTitle("4d mesh");
@@ -68,6 +69,7 @@ void ofApp::setup(){
     twoPassFbo.allocate(ofGetWidth(), ofGetHeight(), GL_RGBA16F);
     finalfbo.allocate(ofGetWidth(), ofGetHeight(), GL_RGBA16F);
     
+    ofLoadImage(mBgTex,"texture/background.jpg");
     // Shader control
     
     isXW = isYW = isZW = isXY = isXZ = isYZ = 0;
@@ -96,7 +98,6 @@ void ofApp::setup(){
 
 //--------------------------------------------------------------
 void ofApp::update(){
-//    input = serial.readByte();
     if(isScreenDirty){
         isScreenDirty = false;
         fbo.allocate(ofGetWidth(), ofGetHeight(), GL_RGBA16F);
@@ -108,9 +109,8 @@ void ofApp::update(){
         shader.load("shader/shader.vert", "shader/shader.frag");
         isShaderDirty = false;
     }
+//    input = serial.readByte();
     while(serial.readBytes(&input, 1) > 0);
-//    cout<<std::bitset<8>(input)<<endl;
-    
     
 
     if(prevInput != input){
@@ -120,23 +120,58 @@ void ofApp::update(){
     
     if(change){
         prevW = currW;
+        prevXW = isXW;
+        prevZW = isZW;
+        prevXY = isXY;
+        prevXZ = isXZ;
+        prevYZ = isYZ;
+        prevYW = isYW;
         isXW = isYW = isZW = isXY = isXZ = isYZ = 0;
         currW = 0;
         if(input!=0){
-            if((input & 0b11110000) == 0b11110000) {isXY = 1;currW = 0;}
-            else if((input & 0b01010000) == 0b01010000) {isXY = -1;currW = 0;}
-            if((input & 0b11001100) == 0b11001100) {isXZ = 1;currW = 0;}
-            else if((input & 0b01000100) == 0b01000100) {isXZ = -1;currW = 0;}
-            if((input & 0b00111100) == 0b00111100) {isYZ = 1;currW = 0;}
-            else if((input & 0b00010100) == 0b00010100) {isYZ = -1;currW = 0;}
-            if((input & 0b11000011) == 0b11000011) { isXW = 1; currW = 1; }
-            else if((input & 0b01000001) == 0b01000001) {isXW = -1; currW = 1;}
-            if((input & 0b00110011) == 0b00110011) {isYW = 1;currW = 2;}
-            else if((input & 0b00010001) == 0b00010001) {isYW = -1;currW = 2;}
-            if((input & 0b00001111) == 0b00001111) {isZW = 1;currW = 3;}
-            else if((input & 0b00000101) == 0b00000101) {isZW = -1;currW = 3;}
+            cout<<std::bitset<8>(input)<<endl;
+            uint8_t mask = 0b00000011;
+            int axis[4] = {0,0,0,0};
+            int n = 0;
+            while(n<4){
+                uint8_t axisInput = mask & input;
+                if(axisInput & 0x01){
+                    axis[n] += 1;
+                }
+                if(axisInput & 0x02){
+                    axis[n] += 2;
+                }
+                axis[n] %= 3;
+                input >>= 2;
+                n++;
+            }
+            if(axis[0] && axis[1]){
+                isXY = axis[0] == axis[1]? 1 : -1;
+                currW = 0;
+            }
+            if(axis[0] && axis[2]){
+                isXZ = axis[0] == axis[2]? 1 : -1;
+                currW = 0;
+            }
+            if(axis[0] && axis[3]){
+                isXW = axis[0] == axis[3]? 1 : -1;
+                currW = 1;
+            }
+            if(axis[1] && axis[2]){
+                isYZ = axis[1] == axis[2]? 1 : -1;
+                currW = 0;
+            }
+            if(axis[1] && axis[3]){
+                isYW = axis[1] == axis[3]? 1 : -1;
+                currW = 2;
+            }
+            if(axis[2] && axis[3]){
+                isZW = axis[2] == axis[3]? 1 : -1;
+                currW = 3;
+            }
         }
         changePoint = ofGetElapsedTimef();
+        
         change = false;
     }
     
@@ -147,21 +182,25 @@ void ofApp::update(){
     }else{
         bingo = false;
     }
-    if(abs(fmodf(tess.angleXW, PI) - 2.18) < 0.02){
+    if(abs(fmodf(tess.angleXW, PI) - 2.98) < 0.02){
         bingo = true;
     }else{
         bingo = false;
     }
-    if(abs(fmodf(tess.angleZW, PI) - 0.76) < 0.02){
+    if(abs(fmodf(tess.angleZW, PI) - 0.46) < 0.02){
         bingo = true;
     }else{
         bingo = false;
     }
     
     if(bingo && !prevBingo){
+        serial.writeByte((uint8_t)1);
         bingoPoint = ofGetElapsedTimef();
         blink.play();
     }
+//    else{
+//        serial.writeByte((uint8_t)0);
+//    }
     
     angle += 0.005;
     
@@ -205,18 +244,20 @@ void ofApp::update(){
 
 //--------------------------------------------------------------
 void ofApp::draw(){
-//    std::stringstream strm;
-//    strm << "fps: " << ofGetFrameRate();
-//    ofSetWindowTitle(strm.str());
-//    std::stringstream sttm;
-//    sttm << "time: " << ofGetElapsedTimef();
-//    ofSetColor(255);
-//    ofDrawBitmapString(strm.str(), 100, 100);
-//    ofDrawBitmapString(sttm.str(), 100, 120);
-    
+    if(isFps){
+        std::stringstream strm;
+        strm << "fps: " << ofGetFrameRate();
+        ofSetWindowTitle(strm.str());
+        std::stringstream sttm;
+        sttm << "time: " << ofGetElapsedTimef();
+        ofSetColor(255);
+        ofDrawBitmapString(strm.str(), 100, 100);
+        ofDrawBitmapString(sttm.str(), 100, 120);
+    }
     
     this->shader.begin();
-    this->shader.setUniformTexture("maskTex", finalfbo.getTexture(), 1 );
+    this->shader.setUniformTexture("maskTex", finalfbo.getTexture(), 0 );
+//    this->shader.setUniformTexture("bgTex", mBgTex, 1 );
     this->shader.setUniform1f("angle", angle);
     this->shader.setUniform1i("prevW", prevW);
     this->shader.setUniform1f("time", ofGetElapsedTimef());
@@ -227,6 +268,16 @@ void ofApp::draw(){
     this->shader.setUniform1i("isXW", isXW);
     this->shader.setUniform1i("isYW", isYW);
     this->shader.setUniform1i("isZW", isZW);
+    this->shader.setUniform1i("isXY", isXY);
+    this->shader.setUniform1i("isXZ", isXZ);
+    this->shader.setUniform1i("isYZ", isYZ);
+    
+    this->shader.setUniform1i("prevXW", prevXW);
+    this->shader.setUniform1i("prevYW", prevYW);
+    this->shader.setUniform1i("prevZW", prevZW);
+    this->shader.setUniform1i("prevXY", prevXY);
+    this->shader.setUniform1i("prevXZ", prevXZ);
+    this->shader.setUniform1i("prevYZ", prevYZ);
     
     finalfbo.draw(0,0);
 
@@ -276,13 +327,13 @@ void ofApp::bloomE(){
 }
 //--------------------------------------------------------------
 void ofApp::keyPressed(int key){
-    if (key == 'q') input |= 0b00110011;
-    if (key == 'e') input |= 0b00001111;
-    if (key == 'w') input |= 0b11000011;
-    if (key == 'x') input |= 0b11110000;
-    if (key == 'z') input |= 0b11001100;
-    if (key == 'c') input |= 0b00111100;
-    if (key == 'a') input = 0b00000000;
+//    if (key == 'q') input |= 0b00110011;
+//    if (key == 'e') input |= 0b00001111;
+//    if (key == 'w') input |= 0b11000011;
+//    if (key == 'x') input |= 0b11110000;
+//    if (key == 'z') input |= 0b11001100; // y
+//    if (key == 'c') input |= 0b00111100;
+//    if (key == 'a') input = 0b00000000;
     if (key == ' '){bingoPoint = ofGetElapsedTimef();blink.play();}
 }
 
@@ -296,6 +347,9 @@ void ofApp::keyReleased(int key){
         case 'f':
             ofToggleFullscreen();
             isScreenDirty = true;
+            break;
+        case 'p':
+            isFps = !isFps;
             break;
         default:
             break;

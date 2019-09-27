@@ -131,7 +131,7 @@ void Cube::update(ofMesh box){
 
         float distance = ((ofVec3f)spheres[i]->getPosition()).distance(center);
         if(sLife[i] < 0){
-            sLife[i] = ofRandom(500,1000);
+            sLife[i] = ofRandom(500,1500);
             spheres[i].reset(new ofxBulletSphere());
             float size = 5;
             spheres[i]->create(world.world, center + ofVec3f(ofRandom(-smallest, smallest), ofRandom(-smallest, smallest), ofRandom(-smallest, smallest)), 1, size);
